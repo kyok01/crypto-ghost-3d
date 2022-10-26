@@ -3,6 +3,11 @@ import "@nomicfoundation/hardhat-toolbox";
 
 const config: HardhatUserConfig = {
   solidity: "0.8.17",
+  networks: {
+    hardhat: {
+      blockGasLimit: 10_000_000_000_000,
+    }
+  }
 };
 
 export default config;
