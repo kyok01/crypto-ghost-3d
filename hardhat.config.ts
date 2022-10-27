@@ -5,7 +5,7 @@ const config: HardhatUserConfig = {
   solidity: "0.8.17",
   networks: {
     hardhat: {
-      blockGasLimit: 10_000_000_000_000,
+      blockGasLimit: 30_000_000,
     }
   }
 };
