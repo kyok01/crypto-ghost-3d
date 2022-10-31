@@ -3,6 +3,16 @@ import os
 
 
 def create_base_obj_vector(radius: int, vector: list, round_num: int) -> str:
+    """sin, cos計算
+
+    Args:
+        radius (int): 半径
+        vector (list): ベクトル
+        round_num (int): 丸め込む桁数
+
+    Returns:
+        str: _description_
+    """
     angle = math.radians(360 // radius)
 
     sin_num = math.sin(angle)
@@ -14,8 +24,19 @@ def create_base_obj_vector(radius: int, vector: list, round_num: int) -> str:
     return next_x, next_y
 
 
-def create_v_vector(vector_base_list: list, vector: list, vector_z_inversion: list):
+def create_v_vector(vector_base_list: list, vector: str, vector_z_inversion: list):
+    """vを生成
+
+    Args:
+        vector_base_list (list): ベースとなるベクトルの配列
+        vector (list): vを文字列にしたもの。生成したvが結合されていく。
+        vector_z_inversion (list): vをz軸で反転したもの。生成したz軸で反転したvが結合されていく。
+
+    Returns:
+        _type_: _description_
+    """
     # x軸マイナス
+    # 左上の箇所のため、x軸の値が0になる。
     vector += f"v {vector_base_list[2] * -1} {vector_base_list[1]} {vector_base_list[0]}\n"
     vector_z_inversion += f"v {vector_base_list[2] * -1} {vector_base_list[1] * -1} {vector_base_list[0]}\n"
     for vector_base_index in [2, 1]:
@@ -32,6 +53,7 @@ def create_v_vector(vector_base_list: list, vector: list, vector_z_inversion: li
             vector_z_inversion += f"v {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3+2] * -1}\n"
 
     # y軸マイナス
+    # 右下の箇所のため、y軸の値が0になる。
     vector += f"v {vector_base_list[2]} {vector_base_list[1]} {vector_base_list[0] * -1}\n"
     vector_z_inversion += f"v {vector_base_list[2]} {vector_base_list[+1] * -1} {vector_base_list[0] * -1}\n"
     for vector_base_index in [2, 1]:
@@ -42,46 +64,52 @@ def create_v_vector(vector_base_list: list, vector: list, vector_z_inversion: li
 
 
 def create_vn_vector(vector_base_list: list, vector: list, vector_z_inversion: list):
+    """vnを生成
+
+    Args:
+        vector_base_list (list): ベースとなるベクトルの配列
+        vector (list): vnを文字列にしたもの。生成したvnが結合されていく。
+        vector_z_inversion (list): vnをz軸で反転したもの。生成したz軸で反転したvnが結合されていく。
+
+    Returns:
+        _type_: _description_
+    """
     # x軸マイナス
     for vector_base_index in range(3):
-        if vector_base_index == 0:
-            vector += f"vn {vector_base_list[vector_base_index*3+2] * -1} {vector_base_list[vector_base_index*3+1]} {vector_base_list[vector_base_index*3]}\n"
-            vector_z_inversion += f"vn {vector_base_list[vector_base_index*3+2] * -1} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3]}\n"
-        else:
-            vector += f"vn {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1]} {vector_base_list[vector_base_index*3+2]}\n"
-            vector_z_inversion += f"vn {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3+2]}\n"
+        vector += f"vn {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1]} {vector_base_list[vector_base_index*3+2]}\n"
+        vector_z_inversion += f"vn {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3+2]}\n"
 
     # x軸y軸マイナス
     for vector_base_index in range(3):
-        if str(vector_base_list[vector_base_index*3+2]) in "0.0":
-            vector += f"vn {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1]} {vector_base_list[vector_base_index*3+2]}\n"
-            vector_z_inversion += f"vn {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3+2]}\n"
-        else:
-            vector += f"vn {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1]} {vector_base_list[vector_base_index*3+2] * -1}\n"
-            vector_z_inversion += f"vn {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3+2] * -1}\n"
+        vector += f"vn {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1]} {vector_base_list[vector_base_index*3+2] * -1}\n"
+        vector_z_inversion += f"vn {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3+2] * -1}\n"
 
     # y軸マイナス
     for vector_base_index in range(3):
-        if vector_base_index == 0:
-            vector += f"vn {vector_base_list[vector_base_index*3+2]} {vector_base_list[vector_base_index*3+1]} {vector_base_list[vector_base_index*3] * -1}\n"
-            vector_z_inversion += f"vn {vector_base_list[vector_base_index*3+2]} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3] * -1}\n"
-        # if str(vector[vector_base_index*3+2]) in "0.0":
-            # vector += f"{vector_kind} {vector_base_list[vector_base_index*3]} {vector_base_list[vector_base_index*3+1]} {vector_base_list[vector_base_index*3+2]}\n"
-            # vector_z_inversion += f"{vector_kind} {vector_base_list[vector_base_index*3]} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3+2]}\n"
-        else:
-            vector += f"vn {vector_base_list[vector_base_index*3]} {vector_base_list[vector_base_index*3+1]} {vector_base_list[vector_base_index*3+2] * -1}\n"
-            vector_z_inversion += f"vn {vector_base_list[vector_base_index*3]} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3+2] * -1}\n"
+        vector += f"vn {vector_base_list[vector_base_index*3]} {vector_base_list[vector_base_index*3+1]} {vector_base_list[vector_base_index*3+2] * -1}\n"
+        vector_z_inversion += f"vn {vector_base_list[vector_base_index*3]} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3+2] * -1}\n"
 
     return vector, vector_z_inversion
 
 
 def decode_obj(vector_kind: str, radius: int, vector: str, vector_list: list[float]) -> list:
+    """vとvnを生成
 
+    Args:
+        vector_kind (str): vを生成するか、vnを生成するか。
+        radius (int): 半径
+        vector (str): 1つのベクトル。ここにどんどんv又はvnが結合されていく。
+        vector_list (list[float]): 1つのベクトル。
+
+    Returns:
+        list: vector
+    """
     vector_base_list = vector_list
     vector_x = float(vector_list[0])
     vector_z = float(vector_list[1])
     vector_y = float(vector_list[2])
 
+    # vは小数点6桁、vnは小数点が4桁
     if vector_kind == "v":
         round_num = 6
     elif vector_kind == "vn":
@@ -89,6 +117,7 @@ def decode_obj(vector_kind: str, radius: int, vector: str, vector_list: list[flo
 
     vector_z_inversion = f"{vector_kind} {vector_list[0]} {vector_list[1] * -1} {vector_list[2]}\n"
 
+    # ベースとなるvやvnを生成（この値を使用して-をつけたりすることでvやvnを生成していく）。
     for _ in range(radius//4-1):
         next_vector_x, next_vector_y = create_base_obj_vector(radius, [vector_x, vector_y], round_num)
         vector_x = float(next_vector_x)
@@ -97,12 +126,14 @@ def decode_obj(vector_kind: str, radius: int, vector: str, vector_list: list[flo
         vector += f"{vector_kind} {next_vector_x} {vector_z} {next_vector_y}\n"
         vector_z_inversion += f"{vector_kind} {next_vector_x} {vector_z * -1} {next_vector_y}\n"
 
-    print(f"vector_kind_base_list: {vector_base_list}")
+    # ベースとなるvやvnを確認
+    print(f"{vector_kind}のvector_base_list: {vector_base_list}")
 
+    # v又はvnを生成
     if vector_kind == "v":
         vector, vector_z_inversion = create_v_vector(vector_base_list, vector, vector_z_inversion)
     else:
-        vector, vector_z_inversion = create_v_vector(vector_base_list, vector, vector_z_inversion)
+        vector, vector_z_inversion = create_vn_vector(vector_base_list, vector, vector_z_inversion)
 
     return vector, vector_z_inversion
 
@@ -113,7 +144,17 @@ def create_vector_file(file_name: str, vector_str: str):
         txt_file.write(vector_str)
 
 
-def create_f(v_vector: str, vn_vector: str, radius: int):
+def create_f(v_vector: str, vn_vector: str, radius: int) -> str:
+    """fを生成。
+
+    Args:
+        v_vector (str): vを文字列として受け取る。
+        vn_vector (str): vnを文字列として受け取る。
+        radius (int): 半径
+
+    Returns:
+        sre: fの文字列を返す。
+    """
     f_mesh = ""
     vn_length = len(vn_vector.split("\n"))
     for vn_index in range(1, vn_length):
@@ -186,14 +227,17 @@ if __name__ == "__main__":
     # print(f"v_second_inversion: \n{v_second_inversion}")
     # print(f"v_top_inversion: \n{v_top_inversion}")
 
+    # vの一番高い/低い頂点を追加。
     v_vector = f"v -0.000000 1.000000 0.000000\n{v_top}{v_second}{v_third}{v_second_inversion}{v_top_inversion}v 0.000000 -1.000000 0.000000\n"
     vn_vector = f"{vn_top}{vn_second}{vn_third}{vn_third_inversion}{vn_second_inversion}{vn_top_inversion}"
 
-    # write txt file
+    # テキストファイルにvとvnを書き出す。
     create_vector_file("v.txt", v_vector)
     create_vector_file("vn.txt", vn_vector)
 
+    # fを生成
     f_mesh = create_f(v_vector, vn_vector, radius)
+    # テキストファイルにfを書き出す。
     create_vector_file("f.txt", f_mesh)
 
 
