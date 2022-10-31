@@ -162,13 +162,36 @@ def create_f(v_vector: str, vn_vector: str, radius: int) -> str:
             f_mesh += f"f {vn_index+1}/{vn_index}/{vn_index} 1/{vn_index}/{vn_index} {vn_index+2}/{vn_index}/{vn_index}\n"
         elif vn_index == radius:
             f_mesh += f"f {vn_index+1}/{vn_index}/{vn_index} 1/{vn_index}/{vn_index} {vn_index-10}/{vn_index}/{vn_index}\n"
+        elif vn_index == vn_length-1:
+            f_mesh += f"f {vn_index-radius*2+2}/{vn_index}/{vn_index} 62/{vn_index}/{vn_index} {vn_index-radius+1}/{vn_index}/{vn_index}\n"
         elif vn_index >= vn_length-radius:
-            f_mesh += f"f {vn_index-2}/{vn_index}/{vn_index} 72/{vn_index}/{vn_index} {vn_index-1}/{vn_index}/{vn_index}\n"
+            f_mesh += f"f {vn_index-radius+2}/{vn_index}/{vn_index} 62/{vn_index}/{vn_index} {vn_index-radius+1}/{vn_index}/{vn_index}\n"
+        elif vn_index % radius == 0:
+            f_mesh += f"f {vn_index-radius*2+2}/{vn_index}/{vn_index} {vn_index-radius+2}/{vn_index}/{vn_index} {vn_index+1}/{vn_index}/{vn_index} {vn_index-radius+1}/{vn_index}/{vn_index}\n"
         else:
             # f_mesh += f"f {vn_index-radius+1}/{vn_index}/{vn_index} {vn_index-radius+2}/{vn_index}/{vn_index} {vn_index}/{vn_index}/{vn_index} {vn_index+1}/{vn_index}/{vn_index}\n"
-            f_mesh += f"f {vn_index-radius+2}/{vn_index}/{vn_index} {vn_index+1}/{vn_index}/{vn_index} {vn_index-radius+1}/{vn_index}/{vn_index} {vn_index}/{vn_index}/{vn_index}\n"
+            f_mesh += f"f {vn_index-radius+2}/{vn_index}/{vn_index} {vn_index+2}/{vn_index}/{vn_index} {vn_index+1}/{vn_index}/{vn_index} {vn_index-radius+1}/{vn_index}/{vn_index}\n"
 
     return f_mesh
+
+
+def create_obj_file(v_vector: str, vn_vector: str, f_mesh):
+    """objファイルの作成
+
+    Args:
+        v_vector (str): vを文字列として受け取る。
+        vn_vector (str): vnを文字列として受け取る。
+        f_mesh (_type_): fを文字列として受け取る。
+    """
+
+    obj = "# Blender v3.2.2 OBJ File: ''\n# www.blender.org\nmtllib sphere_12_6.mtl\no 球_球.001\n"
+    obj += v_vector
+    obj += vn_vector
+    obj += "usemtl None\ns off\n"
+    obj += f_mesh
+
+    create_vector_file("create_obj_12_6.obj", obj)
+
 
 if __name__ == "__main__":
     """
@@ -239,6 +262,9 @@ if __name__ == "__main__":
     f_mesh = create_f(v_vector, vn_vector, radius)
     # テキストファイルにfを書き出す。
     create_vector_file("f.txt", f_mesh)
+
+    # objファイル作成
+    create_obj_file(v_vector, vn_vector, f_mesh)
 
 
 # 1 v 0.000000 0.866025 -0.500000
