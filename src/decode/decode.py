@@ -2,18 +2,18 @@ import math
 import os
 
 
-def create_base_obj_vector(division_num_h: int, vector: list, round_num: int) -> str:
+def create_base_obj_vector(div_num_h: int, vector: list, round_num: int) -> str:
     """sin, cos計算
 
     Args:
-        division_num_h (int): 分割数
+        div_num_h (int): 分割数
         vector (list): ベクトル
         round_num (int): 丸め込む桁数
 
     Returns:
         str: _description_
     """
-    angle = math.radians(360 // division_num_h)
+    angle = math.radians(360 // div_num_h)
 
     sin_num = math.sin(angle)
     cos_num = math.cos(angle)
@@ -91,13 +91,45 @@ def create_vn_vector(vector_base_list: list, vector: list, vector_z_inversion: l
 
     return vector, vector_z_inversion
 
+def create_vt_vector(div_num_h: int, div_num_v: int):
+    """vtを生成
+    Args:
+        div_num_h: 水平方向の分割数。
+        div_num_v: 垂直方向の分割数。
+    """
+    vector_str = f""
+    num_of_vt = div_num_h * (div_num_v + 1) + (div_num_v - 1)
 
-def decode_obj(vector_kind: str, division_num_h: int, vector: str, vector_list: list[float]) -> list:
+    # 縦横の１マスの長さをユニットとして定義。
+    unit_h = 1 / div_num_h
+    unit_h_half = unit_h / 2
+    unit_v = 1 / div_num_v
+
+    # 上部頂点がdiv_num_h個ある。y座標は常に１。
+    for index in range(div_num_h):
+        x = round(unit_h_half + index * unit_h, 6)
+        vector_str += f"vt {x} {1}\n"
+
+    # 側面の四角形に所属する頂点が num_of_vt - 2 * div_num_h 個ある。
+    for index in range(div_num_h, num_of_vt - div_num_h):
+        x = round(((index + 1) % (div_num_h + 1)) * unit_h, 6)
+        y = round((div_num_v - (index + 1) // (div_num_h + 1)) * unit_v, 6)
+        vector_str += f"vt {x} {y}\n"
+
+    # 下部頂点がdiv_num_h個ある。y座標は常に０。
+    for index in range(div_num_h):
+        x = round(unit_h_half + index * unit_h, 6)
+        vector_str += f"vt {x} {0}\n"
+
+    return vector_str
+
+
+def decode_obj(vector_kind: str, div_num_h: int, vector: str, vector_list: list[float]) -> list:
     """vとvnを生成
 
     Args:
         vector_kind (str): vを生成するか、vnを生成するか。
-        division_num_h (int): 水平方向の分割数
+        div_num_h (int): 水平方向の分割数
         vector (str): 1つのベクトル。ここにどんどんv又はvnが結合されていく。
         vector_list (list[float]): 1つのベクトル。
 
@@ -118,8 +150,8 @@ def decode_obj(vector_kind: str, division_num_h: int, vector: str, vector_list: 
     vector_z_inversion = f"{vector_kind} {vector_list[0]} {vector_list[1] * -1} {vector_list[2]}\n"
 
     # ベースとなるvやvnを生成（この値を使用して-をつけたりすることでvやvnを生成していく）。
-    for _ in range(division_num_h//4-1):
-        next_vector_x, next_vector_y = create_base_obj_vector(division_num_h, [vector_x, vector_y], round_num)
+    for _ in range(div_num_h//4-1):
+        next_vector_x, next_vector_y = create_base_obj_vector(div_num_h, [vector_x, vector_y], round_num)
         vector_x = float(next_vector_x)
         vector_y = float(next_vector_y)
         vector_base_list.extend([next_vector_x, vector_z, next_vector_y])
@@ -144,13 +176,13 @@ def create_vector_file(file_name: str, vector_str: str):
         txt_file.write(vector_str)
 
 
-def create_f(v_vector: str, vn_vector: str, division_num_h: int) -> str:
+def create_f(v_vector: str, vn_vector: str, div_num_h: int) -> str:
     """fを生成。
 
     Args:
         v_vector (str): vを文字列として受け取る。
         vn_vector (str): vnを文字列として受け取る。
-        division_num_h (int): 水平方向の分割数
+        div_num_h (int): 水平方向の分割数
 
     Returns:
         sre: fの文字列を返す。
@@ -158,19 +190,19 @@ def create_f(v_vector: str, vn_vector: str, division_num_h: int) -> str:
     f_mesh = ""
     vn_length = len(vn_vector.split("\n"))
     for vn_index in range(1, vn_length):
-        if vn_index < division_num_h:
+        if vn_index < div_num_h:
             f_mesh += f"f {vn_index+1}/{vn_index}/{vn_index} 1/{vn_index}/{vn_index} {vn_index+2}/{vn_index}/{vn_index}\n"
-        elif vn_index == division_num_h:
+        elif vn_index == div_num_h:
             f_mesh += f"f {vn_index+1}/{vn_index}/{vn_index} 1/{vn_index}/{vn_index} {vn_index-10}/{vn_index}/{vn_index}\n"
         elif vn_index == vn_length-1:
-            f_mesh += f"f {vn_index-division_num_h*2+2}/{vn_index}/{vn_index} 62/{vn_index}/{vn_index} {vn_index-division_num_h+1}/{vn_index}/{vn_index}\n"
-        elif vn_index >= vn_length-division_num_h:
-            f_mesh += f"f {vn_index-division_num_h+2}/{vn_index}/{vn_index} 62/{vn_index}/{vn_index} {vn_index-division_num_h+1}/{vn_index}/{vn_index}\n"
-        elif vn_index % division_num_h == 0:
-            f_mesh += f"f {vn_index-division_num_h*2+2}/{vn_index}/{vn_index} {vn_index-division_num_h+2}/{vn_index}/{vn_index} {vn_index+1}/{vn_index}/{vn_index} {vn_index-division_num_h+1}/{vn_index}/{vn_index}\n"
+            f_mesh += f"f {vn_index-div_num_h*2+2}/{vn_index}/{vn_index} 62/{vn_index}/{vn_index} {vn_index-div_num_h+1}/{vn_index}/{vn_index}\n"
+        elif vn_index >= vn_length-div_num_h:
+            f_mesh += f"f {vn_index-div_num_h+2}/{vn_index}/{vn_index} 62/{vn_index}/{vn_index} {vn_index-div_num_h+1}/{vn_index}/{vn_index}\n"
+        elif vn_index % div_num_h == 0:
+            f_mesh += f"f {vn_index-div_num_h*2+2}/{vn_index}/{vn_index} {vn_index-div_num_h+2}/{vn_index}/{vn_index} {vn_index+1}/{vn_index}/{vn_index} {vn_index-div_num_h+1}/{vn_index}/{vn_index}\n"
         else:
-            # f_mesh += f"f {vn_index-division_num_h+1}/{vn_index}/{vn_index} {vn_index-division_num_h+2}/{vn_index}/{vn_index} {vn_index}/{vn_index}/{vn_index} {vn_index+1}/{vn_index}/{vn_index}\n"
-            f_mesh += f"f {vn_index-division_num_h+2}/{vn_index}/{vn_index} {vn_index+2}/{vn_index}/{vn_index} {vn_index+1}/{vn_index}/{vn_index} {vn_index-division_num_h+1}/{vn_index}/{vn_index}\n"
+            # f_mesh += f"f {vn_index-div_num_h+1}/{vn_index}/{vn_index} {vn_index-div_num_h+2}/{vn_index}/{vn_index} {vn_index}/{vn_index}/{vn_index} {vn_index+1}/{vn_index}/{vn_index}\n"
+            f_mesh += f"f {vn_index-div_num_h+2}/{vn_index}/{vn_index} {vn_index+2}/{vn_index}/{vn_index} {vn_index+1}/{vn_index}/{vn_index} {vn_index-div_num_h+1}/{vn_index}/{vn_index}\n"
 
     return f_mesh
 
@@ -195,7 +227,7 @@ def create_obj_file(v_vector: str, vn_vector: str, f_mesh):
 
 if __name__ == "__main__":
     """
-    division_num_h: 12
+    div_num_h: 12
 
     v
     # 1段目
@@ -225,17 +257,17 @@ if __name__ == "__main__":
     vector: 0.9351 0.2506 0.2506
     """
 
-    division_num_h = 12
+    div_num_h = 12
 
     # v
-    v_top, v_top_inversion = decode_obj("v", division_num_h, "v 0.500000 0.866025 0.000000\n", [0.500000, 0.866025, 0.000000])
-    v_second, v_second_inversion = decode_obj("v", division_num_h, "v 0.866026 0.500000 0.000000\n", [0.866026, 0.500000, 0.000000])
-    v_third, v_third_inversion = decode_obj("v", division_num_h, "v 1.000000 -0.000000 0.000000\n", [1.000000, -0.000000, 0.000000])
+    v_top, v_top_inversion = decode_obj("v", div_num_h, "v 0.500000 0.866025 0.000000\n", [0.500000, 0.866025, 0.000000])
+    v_second, v_second_inversion = decode_obj("v", div_num_h, "v 0.866026 0.500000 0.000000\n", [0.866026, 0.500000, 0.000000])
+    v_third, v_third_inversion = decode_obj("v", div_num_h, "v 1.000000 -0.000000 0.000000\n", [1.000000, -0.000000, 0.000000])
 
     # vn
-    vn_top, vn_top_inversion = decode_obj("vn", division_num_h, "vn 0.2582 0.9636 0.0692\n", [0.2582, 0.9636, 0.0692])
-    vn_second, vn_second_inversion = decode_obj("vn", division_num_h, "vn 0.6947 0.6947 0.1862\n", [0.6947, 0.6947, 0.1862])
-    vn_third, vn_third_inversion = decode_obj("vn", division_num_h, "vn 0.9351 0.2506 0.2506\n", [0.9351, 0.2506, 0.2506])
+    vn_top, vn_top_inversion = decode_obj("vn", div_num_h, "vn 0.2582 0.9636 0.0692\n", [0.2582, 0.9636, 0.0692])
+    vn_second, vn_second_inversion = decode_obj("vn", div_num_h, "vn 0.6947 0.6947 0.1862\n", [0.6947, 0.6947, 0.1862])
+    vn_third, vn_third_inversion = decode_obj("vn", div_num_h, "vn 0.9351 0.2506 0.2506\n", [0.9351, 0.2506, 0.2506])
 
     # print(f"vn_top: \n{vn_top}")
     # print(f"vn_second: \n{vn_second}")
@@ -253,13 +285,15 @@ if __name__ == "__main__":
     # vの一番高い/低い頂点を追加。
     v_vector = f"v -0.000000 1.000000 0.000000\n{v_top}{v_second}{v_third}{v_second_inversion}{v_top_inversion}v 0.000000 -1.000000 0.000000\n"
     vn_vector = f"{vn_top}{vn_second}{vn_third}{vn_third_inversion}{vn_second_inversion}{vn_top_inversion}"
+    vt_vector = create_vt_vector(12, 6)
 
     # テキストファイルにvとvnを書き出す。
     create_vector_file("v.txt", v_vector)
     create_vector_file("vn.txt", vn_vector)
+    create_vector_file("vt.txt", vt_vector)
 
     # fを生成
-    f_mesh = create_f(v_vector, vn_vector, division_num_h)
+    f_mesh = create_f(v_vector, vn_vector, div_num_h)
     # テキストファイルにfを書き出す。
     create_vector_file("f.txt", f_mesh)
 
