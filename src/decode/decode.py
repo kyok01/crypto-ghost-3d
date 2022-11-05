@@ -15,11 +15,16 @@ def create_base_obj_vector(radius: int, vector: list, round_num: int) -> str:
     """
     angle = math.radians(360 // radius)
 
-    sin_num = math.sin(angle)
-    cos_num = math.cos(angle)
+    sin_num = math.sin(angle) * 100000
+    cos_num = math.cos(angle) * 100000
+
+    print(f"sin_num, cos_num: {sin_num, cos_num}")
+
 
     next_x = round(cos_num * vector[0] + (sin_num * vector[1]) * -1, round_num)
     next_y = round(sin_num * vector[0] + cos_num * vector[1], round_num)
+
+    print(f"next_x, next_y: {next_x, next_y}")
 
     return next_x, next_y
 
@@ -45,7 +50,7 @@ def create_v_vector(vector_base_list: list, vector: str, vector_z_inversion: lis
 
     # x軸y軸マイナス
     for vector_base_index in range(3):
-        if str(vector_base_list[vector_base_index*3+2]) in "0.0":
+        if str(vector_base_list[vector_base_index * 3 + 2]) in "0.0":
             vector += f"v {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1]} {vector_base_list[vector_base_index*3+2]}\n"
             vector_z_inversion += f"v {vector_base_list[vector_base_index*3] * -1} {vector_base_list[vector_base_index*3+1] * -1} {vector_base_list[vector_base_index*3+2]}\n"
         else:
@@ -118,28 +123,38 @@ def decode_obj(vector_kind: str, radius: int, vector: str, vector_list: list[flo
     vector_z_inversion = f"{vector_kind} {vector_list[0]} {vector_list[1] * -1} {vector_list[2]}\n"
 
     # ベースとなるvやvnを生成（この値を使用して-をつけたりすることでvやvnを生成していく）。
-    for _ in range(radius//4-1):
-        next_vector_x, next_vector_y = create_base_obj_vector(radius, [vector_x, vector_y], round_num)
+    for _ in range(radius // 4 - 1):
+        next_vector_x, next_vector_y = create_base_obj_vector(
+            radius, [vector_x, vector_y], round_num
+        )
         vector_x = float(next_vector_x)
         vector_y = float(next_vector_y)
         vector_base_list.extend([next_vector_x, vector_z, next_vector_y])
         vector += f"{vector_kind} {next_vector_x} {vector_z} {next_vector_y}\n"
-        vector_z_inversion += f"{vector_kind} {next_vector_x} {vector_z * -1} {next_vector_y}\n"
+        vector_z_inversion += (
+            f"{vector_kind} {next_vector_x} {vector_z * -1} {next_vector_y}\n"
+        )
 
     # ベースとなるvやvnを確認
     print(f"{vector_kind}のvector_base_list: {vector_base_list}")
 
     # v又はvnを生成
     if vector_kind == "v":
-        vector, vector_z_inversion = create_v_vector(vector_base_list, vector, vector_z_inversion)
+        vector, vector_z_inversion = create_v_vector(
+            vector_base_list, vector, vector_z_inversion
+        )
     else:
-        vector, vector_z_inversion = create_vn_vector(vector_base_list, vector, vector_z_inversion)
+        vector, vector_z_inversion = create_vn_vector(
+            vector_base_list, vector, vector_z_inversion
+        )
 
     return vector, vector_z_inversion
 
 
 def create_vector_file(file_name: str, vector_str: str):
     DIR = os.getcwd()
+    if not os.path.exists(os.path.join(DIR, "file")):
+        os.mkdir(os.path.join(DIR, "file"))
     with open(os.path.join(DIR, f"file/{file_name}"), "w+") as txt_file:
         txt_file.write(vector_str)
 
@@ -162,9 +177,9 @@ def create_f(v_vector: str, vn_vector: str, radius: int) -> str:
             f_mesh += f"f {vn_index+1}/{vn_index}/{vn_index} 1/{vn_index}/{vn_index} {vn_index+2}/{vn_index}/{vn_index}\n"
         elif vn_index == radius:
             f_mesh += f"f {vn_index+1}/{vn_index}/{vn_index} 1/{vn_index}/{vn_index} {vn_index-10}/{vn_index}/{vn_index}\n"
-        elif vn_index == vn_length-1:
+        elif vn_index == vn_length - 1:
             f_mesh += f"f {vn_index-radius*2+2}/{vn_index}/{vn_index} 62/{vn_index}/{vn_index} {vn_index-radius+1}/{vn_index}/{vn_index}\n"
-        elif vn_index >= vn_length-radius:
+        elif vn_index >= vn_length - radius:
             f_mesh += f"f {vn_index-radius+2}/{vn_index}/{vn_index} 62/{vn_index}/{vn_index} {vn_index-radius+1}/{vn_index}/{vn_index}\n"
         elif vn_index % radius == 0:
             f_mesh += f"f {vn_index-radius*2+2}/{vn_index}/{vn_index} {vn_index-radius+2}/{vn_index}/{vn_index} {vn_index+1}/{vn_index}/{vn_index} {vn_index-radius+1}/{vn_index}/{vn_index}\n"
@@ -228,14 +243,44 @@ if __name__ == "__main__":
     radius = 12
 
     # v
-    v_top, v_top_inversion = decode_obj("v", radius, "v 0.500000 0.866025 0.000000\n", [0.500000, 0.866025, 0.000000])
-    v_second, v_second_inversion = decode_obj("v", radius, "v 0.866026 0.500000 0.000000\n", [0.866026, 0.500000, 0.000000])
-    v_third, v_third_inversion = decode_obj("v", radius, "v 1.000000 -0.000000 0.000000\n", [1.000000, -0.000000, 0.000000])
+    v_top, v_top_inversion = decode_obj(
+        "v",
+        radius,
+        # "v 0.500000 0.866025 0.000000\n",
+        # [0.500000, 0.866025, 0.000000],
+        "v 500000 866025 0\n",
+        [500000, 866025, 0],
+    )
+    v_second, v_second_inversion = decode_obj(
+        "v",
+        radius,
+        # "v 0.866026 0.500000 0.000000\n",
+        # [0.866026, 0.500000, 0.000000],
+        "v 866026 500000 0\n",
+        [866026, 500000, 0],
+    )
+    v_third, v_third_inversion = decode_obj(
+        "v",
+        radius,
+        # "v 1.000000 -0.000000 0.000000\n",
+        # [1.000000, -0.000000, 0.000000],
+        "v 1000000 -0 0\n",
+        [1000000, -0, 0],
+    )
 
     # vn
-    vn_top, vn_top_inversion = decode_obj("vn", radius, "vn 0.2582 0.9636 0.0692\n", [0.2582, 0.9636, 0.0692])
-    vn_second, vn_second_inversion = decode_obj("vn", radius, "vn 0.6947 0.6947 0.1862\n", [0.6947, 0.6947, 0.1862])
-    vn_third, vn_third_inversion = decode_obj("vn", radius, "vn 0.9351 0.2506 0.2506\n", [0.9351, 0.2506, 0.2506])
+    vn_top, vn_top_inversion = decode_obj(
+        # "vn", radius, "vn 0.2582 0.9636 0.0692\n", [0.2582, 0.9636, 0.0692]
+        "vn", radius, "vn 2582 9636 0692\n", [2582, 9636, 692]
+    )
+    vn_second, vn_second_inversion = decode_obj(
+        # "vn", radius, "vn 0.6947 0.6947 0.1862\n", [0.6947, 0.6947, 0.1862]
+        "vn", radius, "vn 6947 6947 1862\n", [6947, 6947, 1862]
+    )
+    vn_third, vn_third_inversion = decode_obj(
+        # "vn", radius, "vn 0.9351 0.2506 0.2506\n", [0.9351, 0.2506, 0.2506]
+        "vn", radius, "vn 9351 2506 2506\n", [9351, 2506, 2506]
+    )
 
     # print(f"vn_top: \n{vn_top}")
     # print(f"vn_second: \n{vn_second}")
@@ -251,7 +296,7 @@ if __name__ == "__main__":
     # print(f"v_top_inversion: \n{v_top_inversion}")
 
     # vの一番高い/低い頂点を追加。
-    v_vector = f"v -0.000000 1.000000 0.000000\n{v_top}{v_second}{v_third}{v_second_inversion}{v_top_inversion}v 0.000000 -1.000000 0.000000\n"
+    v_vector = f"v -0 1000000 0\n{v_top}{v_second}{v_third}{v_second_inversion}{v_top_inversion}v 0 -1000000 0\n"
     vn_vector = f"{vn_top}{vn_second}{vn_third}{vn_third_inversion}{vn_second_inversion}{vn_top_inversion}"
 
     # テキストファイルにvとvnを書き出す。
@@ -266,35 +311,3 @@ if __name__ == "__main__":
     # objファイル作成
     create_obj_file(v_vector, vn_vector, f_mesh)
 
-
-# 1 v 0.000000 0.866025 -0.500000
-# 5 v 0.250000 0.866025 -0.433013
-# 10 v 0.433013 0.866025 -0.250000
-# 15 v 0.500000 0.866025 0.000000
-# 20 v 0.433013 0.866025 0.250000
-# 25 v 0.250000 0.866025 0.433013
-# 31 v 0.000000 0.866025 0.500000
-# 36 v -0.250000 0.866025 0.433013
-# 42 v -0.433013 0.866025 0.250000
-# 47 v -0.500000 0.866025 0.000000
-# 52 v -0.433013 0.866025 -0.250000
-# 57 v -0.250000 0.866025 -0.433013
-
-# v -0.000000 1.000000 0.000000
-# v 0.500000 0.866025 0.000000
-# v 0.433013 0.866025 0.25
-# v 0.25 0.866025 0.433013
-# v -0.5 0.866025 0.0
-# v -0.433013 0.866025 0.25
-# v -0.25 0.866025 0.433013
-# v -0.5 0.866025 0.0
-# v -0.433013 0.866025 -0.25
-# v -0.25 0.866025 -0.433013
-# v 0.5 0.866025 0.0
-# v 0.433013 0.866025 0.25
-
-# 24 30 35
-
-# 24 vn 0.2582 0.9636 0.0692
-# 30 vn 0.1890 0.9636 0.1890
-# 35 0.0692 0.9636 0.2582
