@@ -291,7 +291,7 @@ if __name__ == "__main__":
     # print(f"v_top_inversion: \n{v_top_inversion}")
 
     # vの一番高い/低い頂点を追加。
-    v_vector = f"v -0 1000000 0\n{v_top}{v_second}{v_third}{v_second_inversion}{v_top_inversion}v 0 -1000000 0\n"
+    v_vector = f"v -0 1 0\n{v_top}{v_second}{v_third}{v_second_inversion}{v_top_inversion}v 0 -1 0\n"
     vn_vector = f"{vn_top}{vn_second}{vn_third}{vn_third_inversion}{vn_second_inversion}{vn_top_inversion}"
 
     # テキストファイルにvとvnを書き出す。

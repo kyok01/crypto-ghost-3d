@@ -1,6 +1,4 @@
-import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
-import { expect } from "chai";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { ethers } from "hardhat";
 
 
@@ -31,7 +29,7 @@ async function deployDecodeObj() {
         console.log(transaction1);
         console.log("VectorDataにデータ登録できました。");
 
-        const transaction3 = await contract.writeGoast(
+        const transaction3 = await contract.writeGhost(
             "First Ghost",
             "First Ghost Description",
             "First Ghost Material Data",
@@ -40,14 +38,14 @@ async function deployDecodeObj() {
         console.log(transaction3);
         console.log("ゴーストのデータを追加できました。")
 
-        const transaction4 = await contract.readGoast(
+        const transaction4 = await contract.readGhost(
             1,
             12
         );
         console.log(transaction4);
         console.log("ゴーストのデータとOBJファイルを取得できました。")
 
-        const transaction5 = await contract.getAllGoast();
+        const transaction5 = await contract.getAllGhost();
         console.log(transaction5);
         console.log("ゴーストのデータを全て取得できました。")
 
