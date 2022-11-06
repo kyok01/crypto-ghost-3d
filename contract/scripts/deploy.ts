@@ -1,18 +1,20 @@
 import { ethers } from "hardhat";
 
-async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+const hre = require("hardhat");
 
-  const lockedAmount = ethers.utils.parseEther("1");
+const main = async () => {
+  const [owner, randomPerson] = await hre.ethers.getSigners();
+  const DecodeObjFactory = await hre.ethers.getContractFactory("DecodeObjTest");
+  const DecodeObjFactoryContract = await DecodeObjFactory.deploy();
+  const DecodeObj = await DecodeObjFactoryContract.deployed();
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  console.log("Contract deployed to: ", DecodeObj.address);
+  console.log("owner address: ", owner.address);
 
-  await lock.deployed();
-
-  console.log(`Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+  const transaction1 = await DecodeObj.createObjData(12, 6,
+    ["0.5", "0.866025", "0.0", "0.433013", "0.866025", "0.25", "0.25", "0.866025", "0.433013", "0.866026", "0.5", "0.0", "0.750001", "0.5", "0.433013", "0.433013", "0.5", "0.750001", "1.0", "0.0", "0.0", "0.866025", "0.0", "0.5", "0.5", "0.0", "0.866025"],
+    ["0.2582", "0.9636", "0.0692", "0.189", "0.9636", "0.189", "0.0692", "0.9636", "0.2582", "0.6947", "0.6947", "0.1862", "0.5085", "0.6947", "0.5086", "0.1861", "0.6947", "0.6947", "0.9351", "0.2506", "0.2506", "0.6845", "0.2506", "0.6846", "0.2505", "0.2506", "0.9351"]
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
