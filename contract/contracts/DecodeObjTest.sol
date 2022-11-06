@@ -1,60 +1,37 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "./Trigonometry.sol";
 import "./Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 
 contract DecodeObjTest {
-    using Trigonometry for uint;
     using Strings for *;
 
-    struct ObjData {
+    struct VectorData {
         uint divNumHorizontal;
         uint divNumVertical;
         string[] baseVVector; // vの配列
         string[] baseVnVector; // vnの配列
     }
 
-    struct GoastData {
-        string name;
-        uint id;
-        uint divNumHorizontal;
-        uint objDataIndex;
+    struct Goast {
+        string name; // goast name
+        string material; // goast material
+        string description; // goast description
+        uint goastId; // goast ID
+        uint vectorDataIndex; // vectorData index
     }
 
-    ObjData[] public objData;
+    VectorData[] public vectorData;
+    Goast[] public goast;
 
-    mapping(uint=>uint) goastIdToGoastData;
-    mapping(uint=>uint) divNumHorizontalToObjDataId;
-
+    uint goadtIdCounter = 1;
     uint objDataId = 1;
 
-    function getSinCos() public pure returns(int, int) {
-        uint angle = 30; // degree
+    mapping(uint=>uint) divNumHorizontalToObjDataId;
 
-        int sin_num = (angle * 0x4000 / 360).sin() * 100000 / 0x7fff;
-        int cos_num = (angle * 0x4000 / 360).cos() * 100000 / 0x7fff;
-
-
-        return (sin_num, cos_num);
-    }
-
-    function createBaseObjVector(int xVector, int yVector) public pure returns(
-        int,
-        int
-    ) {
-        int sinNum;
-        int cosNum;
-        (sinNum, cosNum) = getSinCos();
-        int nextX = cosNum * xVector + sinNum * yVector * -1;
-        int nextY = sinNum * xVector + cosNum * yVector;
-
-        return (nextX, nextY);
-    }
-
-    function createVVector(uint index, string[] memory vectorBaseArray, string memory vector, string memory vectorZInversion) public view returns(
+    function createVVector(uint index, string[] memory vectorBaseArray, string memory vector, string memory vectorZInversion) public pure returns(
         string memory,
         string memory
     ) {
@@ -139,7 +116,7 @@ contract DecodeObjTest {
             string memory _vectorKind,
             uint divNumVertical,
             string[] memory baseVVector
-        ) public view returns(string memory) {
+        ) public pure returns(string memory) {
         string memory vector;
         string memory endZInversionVector;
         string memory vectorZInversion;
@@ -171,14 +148,14 @@ contract DecodeObjTest {
 
     function createObjFile(
         uint _divNumHorizontal
-    ) public view returns(string memory) {
+    ) internal view returns(string memory) {
         require(divNumHorizontalToObjDataId[_divNumHorizontal] > 0, "The specified number of divisions is not registered.");
         uint objDataIndex = divNumHorizontalToObjDataId[_divNumHorizontal] - 1;
 
-        uint divNumHorizontal = objData[objDataIndex].divNumHorizontal;
-        uint divNumVertical = objData[objDataIndex].divNumVertical;
-        string[] memory baseVVector = objData[objDataIndex].baseVVector;
-        string[] memory baseVnVector = objData[objDataIndex].baseVnVector;
+        uint divNumHorizontal = vectorData[objDataIndex].divNumHorizontal;
+        uint divNumVertical = vectorData[objDataIndex].divNumVertical;
+        string[] memory baseVVector = vectorData[objDataIndex].baseVVector;
+        string[] memory baseVnVector = vectorData[objDataIndex].baseVnVector;
 
         string memory vVector = createVector("v", divNumVertical, baseVVector);
 
@@ -189,36 +166,74 @@ contract DecodeObjTest {
         string memory fMesh = createF(divNumHorizontal, divNumHorizontal*divNumVertical);
 
         fMesh = string.concat(unicode"# Blender v3.2.2 OBJ File: ''\n# www.blender.org\nmtllib sphere_12_6.mtl\no 球_球.001\n", vVector, vnVector, "usemtl None\ns off\n", fMesh);
-        // Base64
+        console.log("fMesh create");
         fMesh = Base64.encode(bytes(fMesh));
+        // Base64
+        fMesh = string(abi.encodePacked("data:model/obj,", string(fMesh)));
         return fMesh;
     }
 
 
-    function createObjData(
+    function addVectorData(
         uint _divNumHorizontal,
         uint _divNumVertical,
         string[] memory _baseVVector,
         string[] memory _baseVnVector
     ) public {
-        ObjData memory _newObjData = ObjData(
+        VectorData memory _newObjData = VectorData(
             _divNumHorizontal,
             _divNumVertical,
             _baseVVector,
             _baseVnVector
         );
-        objData.push(_newObjData);
+        vectorData.push(_newObjData);
         divNumHorizontalToObjDataId[_divNumHorizontal] = objDataId;
         objDataId++;
     }
+
+    function writeGoast(
+        string memory _name,
+        string memory _description,
+        string memory _material,
+        uint _divNumHorizontal
+        ) external {
+        uint vectorDataIndex = divNumHorizontalToObjDataId[_divNumHorizontal];
+        Goast memory _newGoast = Goast(
+            _name,
+            _description,
+            _material,
+            goadtIdCounter,
+            vectorDataIndex
+        );
+        goast.push(_newGoast);
+        goadtIdCounter++;
+    }
+
+    function readGoast(uint goastId, uint _divNumHorizontal) external view
+    returns (
+        string memory,
+        string memory,
+        string memory,
+        string memory,
+        uint,
+        uint
+    ){
+        string memory objString = createObjFile(_divNumHorizontal);
+        return (
+            objString,
+            goast[goastId-1].name,
+            goast[goastId-1].description,
+            goast[goastId-1].material,
+            goast[goastId-1].goastId,
+            goast[goastId-1].vectorDataIndex
+        );
+
+    }
+
+    function getAllGoast() external view returns(Goast[] memory) {
+        return goast;
+    }
 }
 
-// 12, 6, [500000, 866025, 0, 866026, 500000, 0, 1, 0, 0], [2582, 9636, 692, 6947, 6947, 1862, 9351, 2506, 2506]
-
-// v
-// [500000, 866025, 0, 866026, 500000, 0, 1, 0, 0]
-
-// vn
-// [2582, 9636, 692, 6947, 6947, 1862, 9351, 2506, 2506]
 
 
