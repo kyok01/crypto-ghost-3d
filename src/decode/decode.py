@@ -15,16 +15,11 @@ def create_base_obj_vector(radius: int, vector: list, round_num: int) -> str:
     """
     angle = math.radians(360 // radius)
 
-    sin_num = math.sin(angle) * 100000
-    cos_num = math.cos(angle) * 100000
-
-    print(f"sin_num, cos_num: {sin_num, cos_num}")
-
+    sin_num = math.sin(angle)
+    cos_num = math.cos(angle)
 
     next_x = round(cos_num * vector[0] + (sin_num * vector[1]) * -1, round_num)
     next_y = round(sin_num * vector[0] + cos_num * vector[1], round_num)
-
-    print(f"next_x, next_y: {next_x, next_y}")
 
     return next_x, next_y
 
@@ -246,40 +241,40 @@ if __name__ == "__main__":
     v_top, v_top_inversion = decode_obj(
         "v",
         radius,
-        # "v 0.500000 0.866025 0.000000\n",
-        # [0.500000, 0.866025, 0.000000],
-        "v 500000 866025 0\n",
-        [500000, 866025, 0],
+        "v 0.500000 0.866025 0.000000\n",
+        [0.500000, 0.866025, 0.000000],
+        # "v 500000 866025 0\n",
+        # [500000, 866025, 0],
     )
     v_second, v_second_inversion = decode_obj(
         "v",
         radius,
-        # "v 0.866026 0.500000 0.000000\n",
-        # [0.866026, 0.500000, 0.000000],
-        "v 866026 500000 0\n",
-        [866026, 500000, 0],
+        "v 0.866026 0.500000 0.000000\n",
+        [0.866026, 0.500000, 0.000000],
+        # "v 866026 500000 0\n",
+        # [866026, 500000, 0],
     )
     v_third, v_third_inversion = decode_obj(
         "v",
         radius,
-        # "v 1.000000 -0.000000 0.000000\n",
-        # [1.000000, -0.000000, 0.000000],
-        "v 1000000 -0 0\n",
-        [1000000, -0, 0],
+        "v 1.000000 -0.000000 0.000000\n",
+        [1.000000, -0.000000, 0.000000],
+        # "v 1000000 -0 0\n",
+        # [1000000, -0, 0],
     )
 
     # vn
     vn_top, vn_top_inversion = decode_obj(
-        # "vn", radius, "vn 0.2582 0.9636 0.0692\n", [0.2582, 0.9636, 0.0692]
-        "vn", radius, "vn 2582 9636 0692\n", [2582, 9636, 692]
+        "vn", radius, "vn 0.2582 0.9636 0.0692\n", [0.2582, 0.9636, 0.0692]
+        # "vn", radius, "vn 2582 9636 0692\n", [2582, 9636, 692]
     )
     vn_second, vn_second_inversion = decode_obj(
-        # "vn", radius, "vn 0.6947 0.6947 0.1862\n", [0.6947, 0.6947, 0.1862]
-        "vn", radius, "vn 6947 6947 1862\n", [6947, 6947, 1862]
+        "vn", radius, "vn 0.6947 0.6947 0.1862\n", [0.6947, 0.6947, 0.1862]
+        # "vn", radius, "vn 6947 6947 1862\n", [6947, 6947, 1862]
     )
     vn_third, vn_third_inversion = decode_obj(
-        # "vn", radius, "vn 0.9351 0.2506 0.2506\n", [0.9351, 0.2506, 0.2506]
-        "vn", radius, "vn 9351 2506 2506\n", [9351, 2506, 2506]
+        "vn", radius, "vn 0.9351 0.2506 0.2506\n", [0.9351, 0.2506, 0.2506]
+        # "vn", radius, "vn 9351 2506 2506\n", [9351, 2506, 2506]
     )
 
     # print(f"vn_top: \n{vn_top}")

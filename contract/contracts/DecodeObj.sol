@@ -58,6 +58,8 @@ contract DecodeObj {
         string memory,
         string memory
     ) {
+        // x軸マイナス
+        // 左上の箇所のため、x軸の値が0になる。
         vector = string.concat(vector, "v -0.", vectorBaseArray[2], " 0.", vectorBaseArray[1], " 0.", vectorBaseArray[0], "\n");
         string memory vectorZInversion = string.concat("v -0.", vectorBaseArray[2], " -0.", vectorBaseArray[1], " 0.", vectorBaseArray[0], "\n");
 
@@ -114,20 +116,22 @@ contract DecodeObj {
         uint _divNum
     ) public pure returns(string memory) {
         string memory fMesh;
-        for (uint index=0; index < _divNum; index++) {
+        for (uint index=1; index <= _divNum; index++) {
             string memory indexString = Strings.toString(index);
             if (index < _divNumHorizontal) {
-                fMesh = string.concat(fMesh, "f ", Strings.toString(index+1), "/", indexString, "/", indexString, " 1/", indexString, "/", indexString, " ", Strings.toString(index+2), "/", indexString, "/", indexString, "/n");
+                fMesh = string.concat(fMesh, "f ", Strings.toString(index+1), "/", indexString, "/", indexString, " 1/", indexString, "/", indexString, " ", Strings.toString(index+2), "/", indexString, "/", indexString, "\n");
             } else if (index == _divNumHorizontal) {
-                fMesh = string.concat(fMesh, "f ", Strings.toString(index+1), "/", indexString, "/", indexString, " 1/", indexString, "/", indexString, " ", Strings.toString(index-10), "/", indexString, "/", indexString, "/n");
-            } else if (index == _divNum-1) {
-                fMesh = string.concat(fMesh, "f ", Strings.toString(index*2+2), "/", indexString, "/", indexString, " 62/", indexString, "/", indexString, " ", Strings.toString(index+_divNumHorizontal+1), "/", indexString, "/", indexString, "/n");
-            } else if (index >= _divNum-_divNumHorizontal) {
-                fMesh = string.concat(fMesh, "f ", Strings.toString(index+2), "/", indexString, "/", indexString, " 62/", indexString, "/", indexString, " ", Strings.toString(index-_divNumHorizontal+1), "/", indexString, "/", indexString, "/n");
-            } else if (index % _divNum == 0) {
-                fMesh = string.concat(fMesh, "f ", Strings.toString(index*2+2), "/", indexString, "/", indexString, " ", Strings.toString(index-_divNumHorizontal+2), "/", indexString, "/", indexString, " ", Strings.toString(index+1), "/", indexString, "/", indexString, "/n");
+                fMesh = string.concat(fMesh, "f ", Strings.toString(index+1), "/", indexString, "/", indexString, " 1/", indexString, "/", indexString, " ", Strings.toString(index-10), "/", indexString, "/", indexString, "\n");
+            } else if (index == _divNum) {
+                fMesh = string.concat(fMesh, "f ", Strings.toString(index-_divNumHorizontal*2+2), "/", indexString, "/", indexString, " 62/", indexString, "/", indexString, " ", Strings.toString(index-_divNumHorizontal+1), "/", indexString, "/", indexString, "\n");
+            } else if (index >= _divNum-_divNumHorizontal+1) {
+                fMesh = string.concat(fMesh, "f ", Strings.toString(index-_divNumHorizontal+2), "/", indexString, "/", indexString, " 62/", indexString, "/", indexString, " ", Strings.toString(index-_divNumHorizontal+1), "/", indexString, "/", indexString, "\n");
+            } else if (index % _divNumHorizontal == 0) {
+                fMesh = string.concat(fMesh, "f ", Strings.toString(index-_divNumHorizontal*2+2), "/", indexString, "/", indexString, " ", Strings.toString(index-_divNumHorizontal+2), "/", indexString, "/", indexString);
+                fMesh = string.concat(fMesh, " ", Strings.toString(index+1), "/", indexString, "/", indexString, " ", Strings.toString(index-_divNumHorizontal+1), "/", indexString, "/", indexString, "\n");
             } else {
-                fMesh = string.concat(fMesh, "f ", Strings.toString(index+2), "/", indexString, "/", indexString, " ", Strings.toString(index+2), "/", indexString, "/", indexString, " ", Strings.toString(index+1), "/", indexString, "/", indexString, "/n");
+                fMesh = string.concat(fMesh, "f ", Strings.toString(index-_divNumHorizontal+2), "/", indexString, "/", indexString, " ", Strings.toString(index+2), "/", indexString, "/", indexString);
+                fMesh = string.concat(fMesh, " ", Strings.toString(index+1), "/", indexString, "/", indexString, " ", Strings.toString(index-_divNumHorizontal+1), "/", indexString, "/", indexString, "\n");
             }
         }
 
@@ -141,8 +145,8 @@ contract DecodeObj {
         ) public view returns(string memory) {
         string memory vector;
         string memory allZInversionVector;
-        console.log("###createVector###");
         for (uint i=0; i < divNumHorizontal/2; i++) {
+            console.log(unicode"for文開始");
             string memory stringVectorX = Strings.toString(uint(baseVVector[i]));
             string memory stringVectorY = Strings.toString(uint(baseVVector[i+1]));
             string memory stringVectorZ = Strings.toString(uint(baseVVector[i+2]));
@@ -157,33 +161,30 @@ contract DecodeObj {
 
             int nextVectorX = int(baseVVector[0]);
             int nextVectorY = int(baseVVector[1]);
-            console.log(vector);
-            console.log(vectorZInversion);
-            for (uint _i=0; _i < divNumHorizontal/2; _i++) {
+            for (uint _i=0; _i < divNumHorizontal/2-1; _i++) {
+                console.log(unicode"for文の中のfor文開始");
                 (nextVectorX, nextVectorY) = createBaseObjVector(nextVectorX, nextVectorY);
-                baseVectorArray[_i+3] = Strings.toString(uint(nextVectorX));
-                baseVectorArray[_i+4] = stringVectorZ;
-                baseVectorArray[_i+5] = Strings.toString(uint(nextVectorY));
+                baseVectorArray[_i*3+3] = Strings.toString(uint(nextVectorX));
+                baseVectorArray[_i*3+4] = stringVectorZ;
+                baseVectorArray[_i*3+5] = Strings.toString(uint(nextVectorY));
 
                 stringVectorX = Strings.toString(uint(nextVectorX));
                 stringVectorY = Strings.toString(uint(nextVectorY));
 
                 vector = string.concat(vector, _vectorKind, " 0.", stringVectorX, " 0.", stringVectorZ, " 0.", stringVectorY, "\n");
                 vectorZInversion = string.concat(vectorZInversion, _vectorKind, " 0.", stringVectorX, " -0.", stringVectorZ, " 0.", stringVectorY, "\n");
-                console.log(unicode"createBaseObjVector実行");
                 console.log(vector);
                 console.log(vectorZInversion);
+                console.log(unicode"for文の中のfor文終了");
             }
-
             allZInversionVector = vectorZInversion;
 
-            console.log(allZInversionVector);
-
             if (keccak256(abi.encodePacked(_vectorKind)) == keccak256(abi.encodePacked("v"))) {
+                console.log(unicode"createVVector開始");
                 (vector, vectorZInversion) = createVVector(baseVectorArray, vector);
                 allZInversionVector = string.concat(vectorZInversion, allZInversionVector);
             } else {
-                createVnVector(baseVectorArray, vector);
+                (vector, vectorZInversion) = createVnVector(baseVectorArray, vector);
                 allZInversionVector = string.concat(vectorZInversion, allZInversionVector);
             }
         }
@@ -207,8 +208,8 @@ contract DecodeObj {
         console.log("########################################################################");
         console.log(Strings.toString(divNumHorizontal));
         console.log(Strings.toString(divNumVertical));
-        // console.log(baseVVector);
-        // console.log(baseVnVector);
+        console.log(Strings.toString(baseVVector[0]));
+        console.log(Strings.toString(baseVnVector[0]));
         console.log("########################################################################");
 
         string memory vVector = createVector("v", divNumVertical, baseVVector);
@@ -241,7 +242,6 @@ contract DecodeObj {
         );
         objData.push(_newObjData);
         divNumHorizontalToObjDataId[_divNumHorizontal] = objDataId;
-        // objData[objDataId].baseVVector = _baseVVector;
         objDataId++;
     }
 }
