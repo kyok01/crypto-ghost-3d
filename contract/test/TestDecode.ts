@@ -38,6 +38,10 @@ async function deployDecodeObj() {
         console.log(transaction3);
         console.log("ゴーストのデータを追加できました。")
 
+        const createObjFile = await contract.createObjFile(12);
+        console.log(createObjFile);
+        console.log("createObjFile")
+
         const transaction4 = await contract.readGhost(
             1,
             12
@@ -50,6 +54,5 @@ async function deployDecodeObj() {
         console.log("ゴーストのデータを全て取得できました。")
 
 
-      //   expect(await lock.unlockTime()).to.equal(unlockTime);
     });
 });
