@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "./Base64.sol";
+import { Base64 } from "./libraries/Base64.sol";
+import "./MintNft.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 
-contract DecodeObjTest {
+contract DecodeObjTest is MintNft {
     using Strings for *;
 
     struct VectorData {
@@ -17,8 +18,8 @@ contract DecodeObjTest {
 
     struct Ghost {
         string name; // ghost name
-        string material; // ghost material
         string description; // ghost description
+        string material; // ghost material
         uint256 ghostId; // ghost ID
         uint256 vectorDataIndex; // vectorData index
     }
@@ -527,7 +528,7 @@ contract DecodeObjTest {
     }
 
     function createObjFile(uint256 _divNumHorizontal)
-        internal
+        public
         view
         returns (string memory)
     {
@@ -593,9 +594,9 @@ contract DecodeObjTest {
         string memory _name,
         string memory _description,
         string memory _material,
-        uint256 _divNumHorizontal
+        uint _divNumHorizontal
     ) external {
-        uint256 vectorDataIndex = divNumHorizontalToObjDataId[
+        uint vectorDataIndex = divNumHorizontalToObjDataId[
             _divNumHorizontal
         ];
         Ghost memory _newGhost = Ghost(
@@ -607,6 +608,13 @@ contract DecodeObjTest {
         );
         ghost.push(_newGhost);
         goadtIdCounter++;
+
+        ghostNftMint(_name, _description,
+            vectorData[vectorDataIndex-1].divNumHorizontal,
+            vectorData[vectorDataIndex-1].divNumVertical,
+            vectorData[vectorDataIndex-1].baseVVector,
+            vectorData[vectorDataIndex-1].baseVnVector
+        );
     }
 
     function readGhost(uint256 ghostId, uint256 _divNumHorizontal)
@@ -635,4 +643,5 @@ contract DecodeObjTest {
     function getAllGhost() external view returns (Ghost[] memory) {
         return ghost;
     }
+
 }
